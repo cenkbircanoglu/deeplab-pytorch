@@ -23,14 +23,17 @@ class VOC(_BaseDataset):
     PASCAL VOC Segmentation dataset
     """
 
-    def __init__(self, year=2012, **kwargs):
+    def __init__(self, year=2012, label_dir=None, **kwargs):
         self.year = year
+        self.label_dir = label_dir
         super(VOC, self).__init__(**kwargs)
 
     def _set_files(self):
         self.root = osp.join(self.root, "VOC{}".format(self.year))
         self.image_dir = osp.join(self.root, "JPEGImages")
-        self.label_dir = osp.join(self.root, "SegmentationClass")
+        if self.label_dir is None:
+            print('Original Labels are going to be used')
+            self.label_dir = osp.join(self.root, "SegmentationClass")
 
         if self.split in ["train", "trainval", "val", "test"]:
             file_list = osp.join(
@@ -58,13 +61,16 @@ class VOCAug(_BaseDataset):
     PASCAL VOC Segmentation dataset with extra annotations
     """
 
-    def __init__(self, year=2012, **kwargs):
+    def __init__(self, year=2012, label_dir=None, **kwargs):
         self.year = year
+        self.label_dir = label_dir
         super(VOCAug, self).__init__(**kwargs)
 
     def _set_files(self):
         self.root = osp.join(self.root, "VOC{}".format(self.year))
-
+        if self.label_dir is None:
+            print('Original Labels are going to be used')
+            self.label_dir = osp.join(self.root, "SegmentationClass")
         if self.split in ["train", "train_aug", "trainval", "trainval_aug", "val"]:
             file_list = osp.join(
                 self.root, "ImageSets/SegmentationAug", self.split + ".txt"
@@ -80,6 +86,9 @@ class VOCAug(_BaseDataset):
         image_id = self.files[index].split("/")[-1].split(".")[0]
         image_path = osp.join(self.root, self.files[index][1:])
         label_path = osp.join(self.root, self.labels[index][1:])
+        if self.label_dir:
+            label_path = osp.join(self.label_dir, self.labels[index][1:].split('/')[-1])
+
         # Load an image
         image = cv2.imread(image_path, cv2.IMREAD_COLOR).astype(np.float32)
         label = np.asarray(Image.open(label_path), dtype=np.int32)
@@ -87,11 +96,8 @@ class VOCAug(_BaseDataset):
 
 
 if __name__ == "__main__":
-    import matplotlib
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
-    import torchvision
-    import yaml
     from torchvision.utils import make_grid
     from tqdm import tqdm
 
@@ -115,7 +121,7 @@ if __name__ == "__main__":
     loader = data.DataLoader(dataset, batch_size=batch_size)
 
     for i, (image_ids, images, labels) in tqdm(
-        enumerate(loader), total=np.ceil(len(dataset) / batch_size), leave=False
+            enumerate(loader), total=np.ceil(len(dataset) / batch_size), leave=False
     ):
         if i == 0:
             mean = torch.tensor((104.008, 116.669, 122.675))[None, :, None, None]

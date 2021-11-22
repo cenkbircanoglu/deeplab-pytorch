@@ -1,10 +1,11 @@
 EXP:
     ID: voc12
-    OUTPUT_DIR: data
+    OUTPUT_DIR: data/resnet101
 
 DATASET:
     NAME: vocaug
     ROOT: ../vision/data/raw/VOCdevkit/
+    LABEL_DIR: ../PuzzleCAM/experiments/predictions/AffinityNet@resnet101@aff_fg=0.40_bg=0.10@train@beta=10@exp_times=8@rw@crf=1
     LABELS: ./data/datasets/voc12/labels.txt
     N_CLASSES: 21
     IGNORE_LABEL: 255
@@ -15,7 +16,7 @@ DATASET:
         TEST: test
 
 DATALOADER:
-    NUM_WORKERS: 0
+    NUM_WORKERS: 8
 
 IMAGE:
     MEAN:
@@ -35,7 +36,7 @@ MODEL:
 
 SOLVER:
     BATCH_SIZE:
-        TRAIN: 5
+        TRAIN: 12
         TEST: 1
     ITER_MAX: 20000
     ITER_SIZE: 2

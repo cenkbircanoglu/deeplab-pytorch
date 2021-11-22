@@ -79,7 +79,7 @@ def resize_labels(labels, size):
         label = label.float().numpy()
         label = Image.fromarray(label).resize(size, resample=Image.NEAREST)
         new_labels.append(np.asarray(label))
-    new_labels = torch.LongTensor(new_labels)
+    new_labels = torch.LongTensor(np.array(new_labels))
     return new_labels
 
 
@@ -124,6 +124,7 @@ def train(config_path, cuda):
         crop_size=CONFIG.IMAGE.SIZE.TRAIN,
         scales=CONFIG.DATASET.SCALES,
         flip=True,
+        label_dir=CONFIG.DATASET.LABEL_DIR
     )
     print(dataset)
 
@@ -318,6 +319,7 @@ def test(config_path, model_path, cuda):
         ignore_label=CONFIG.DATASET.IGNORE_LABEL,
         mean_bgr=(CONFIG.IMAGE.MEAN.B, CONFIG.IMAGE.MEAN.G, CONFIG.IMAGE.MEAN.R),
         augment=False,
+        label_dir=None
     )
     print(dataset)
 
@@ -427,6 +429,7 @@ def crf(config_path, n_jobs):
         ignore_label=CONFIG.DATASET.IGNORE_LABEL,
         mean_bgr=(CONFIG.IMAGE.MEAN.B, CONFIG.IMAGE.MEAN.G, CONFIG.IMAGE.MEAN.R),
         augment=False,
+        label_dir=CONFIG.DATASET.LABEL_DIR
     )
     print(dataset)
 
