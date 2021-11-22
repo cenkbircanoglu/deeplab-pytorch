@@ -32,7 +32,7 @@ class VOC(_BaseDataset):
         self.root = osp.join(self.root, "VOC{}".format(self.year))
         self.image_dir = osp.join(self.root, "JPEGImages")
         if self.label_dir is None:
-            print('Original Labels are going to be used')
+            print("Original Labels are going to be used")
             self.label_dir = osp.join(self.root, "SegmentationClass")
 
         if self.split in ["train", "trainval", "val", "test"]:
@@ -69,7 +69,7 @@ class VOCAug(_BaseDataset):
     def _set_files(self):
         self.root = osp.join(self.root, "VOC{}".format(self.year))
         if self.label_dir is None:
-            print('Original Labels are going to be used')
+            print("Original Labels are going to be used")
             self.label_dir = osp.join(self.root, "SegmentationClass")
         if self.split in ["train", "train_aug", "trainval", "trainval_aug", "val"]:
             file_list = osp.join(
@@ -87,7 +87,7 @@ class VOCAug(_BaseDataset):
         image_path = osp.join(self.root, self.files[index][1:])
         label_path = osp.join(self.root, self.labels[index][1:])
         if self.label_dir:
-            label_path = osp.join(self.label_dir, self.labels[index][1:].split('/')[-1])
+            label_path = osp.join(self.label_dir, self.labels[index][1:].split("/")[-1])
 
         # Load an image
         image = cv2.imread(image_path, cv2.IMREAD_COLOR).astype(np.float32)
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     loader = data.DataLoader(dataset, batch_size=batch_size)
 
     for i, (image_ids, images, labels) in tqdm(
-            enumerate(loader), total=np.ceil(len(dataset) / batch_size), leave=False
+        enumerate(loader), total=np.ceil(len(dataset) / batch_size), leave=False
     ):
         if i == 0:
             mean = torch.tensor((104.008, 116.669, 122.675))[None, :, None, None]
