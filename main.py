@@ -17,8 +17,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from omegaconf import OmegaConf
 from PIL import Image
+from omegaconf import OmegaConf
 from torch.utils.tensorboard import SummaryWriter
 from torchnet.meter import MovingAverageValueMeter
 from tqdm import tqdm
@@ -79,7 +79,7 @@ def resize_labels(labels, size):
         label = label.float().numpy()
         label = Image.fromarray(label).resize(size, resample=Image.NEAREST)
         new_labels.append(np.asarray(label))
-    new_labels = torch.LongTensor(new_labels)
+    new_labels = torch.LongTensor(np.array(new_labels))
     return new_labels
 
 
@@ -124,6 +124,7 @@ def train(config_path, cuda):
         crop_size=CONFIG.IMAGE.SIZE.TRAIN,
         scales=CONFIG.DATASET.SCALES,
         flip=True,
+        label_dir=CONFIG.DATASET.LABEL_DIR,
     )
     print(dataset)
 
@@ -318,6 +319,7 @@ def test(config_path, model_path, cuda):
         ignore_label=CONFIG.DATASET.IGNORE_LABEL,
         mean_bgr=(CONFIG.IMAGE.MEAN.B, CONFIG.IMAGE.MEAN.G, CONFIG.IMAGE.MEAN.R),
         augment=False,
+        label_dir=None,
     )
     print(dataset)
 
@@ -427,6 +429,7 @@ def crf(config_path, n_jobs):
         ignore_label=CONFIG.DATASET.IGNORE_LABEL,
         mean_bgr=(CONFIG.IMAGE.MEAN.B, CONFIG.IMAGE.MEAN.G, CONFIG.IMAGE.MEAN.R),
         augment=False,
+        label_dir=None,
     )
     print(dataset)
 
@@ -472,6 +475,9 @@ def crf(config_path, n_jobs):
 
         filename = os.path.join(logit_dir, image_id + ".npy")
         logit = np.load(filename)
+        image_path = os.path.join(os.path.dirname(logit_dir), "images")
+        os.makedirs(image_path, exist_ok=True)
+        png_name = os.path.join(image_path, image_id + ".png")
 
         _, H, W = image.shape
         logit = torch.FloatTensor(logit)[None, ...]
@@ -481,6 +487,17 @@ def crf(config_path, n_jobs):
         image = image.astype(np.uint8).transpose(1, 2, 0)
         prob = postprocessor(image, prob)
         label = np.argmax(prob, axis=0)
+
+        label_path = (
+            "../vision/data/raw/VOCdevkit/VOC2012/SegmentationClass/2007_000032.png"
+        )
+        label_img = Image.open(label_path)
+        color_palette = label_img.getpalette()
+
+        label_prediction = label.astype(np.uint8)
+        pred_mask = Image.fromarray(label_prediction).convert("P")
+        pred_mask.putpalette(color_palette)
+        pred_mask.save(png_name)
 
         return label, gt_label
 
